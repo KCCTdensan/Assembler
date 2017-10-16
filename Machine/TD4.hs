@@ -2,6 +2,7 @@ module Machine.TD4 (
 	translate
 ) where
 
+-- [要修正]
 translate :: String -> String
 translate "mov a, im" = "0011im"
 translate "mov b, im" = "0111im"
