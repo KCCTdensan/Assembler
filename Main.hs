@@ -8,7 +8,7 @@ import qualified Machine.TD4 as TD4
 data Machine = TD4 | Type1
 
 main = do
-	-- [要修正] 選項解析処理及錯誤時之処理
+	-- [要修正] 選項解析処理及夫錯誤時之処理
 	inputFile <- head <$> getArgs
 	let machine = TD4
 	-- 此処迄
