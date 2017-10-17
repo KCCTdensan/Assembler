@@ -21,5 +21,5 @@ help :: String
 help = "" -- [要修正]
 
 assemble :: Machine -> [String] -> [String]
-assemble TD4 ops = map TD4.translate $ map (map toLower) ops
+assemble TD4 ops = map TD4.assemble $ map (map toLower) ops
 assemble Type1 ops = ["Sorry, this machine is unsupported yet."]
