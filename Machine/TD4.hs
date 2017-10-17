@@ -1,32 +1,34 @@
 module Machine.TD4 (
-	translate
+	assemble
 ) where
 
 import Text.Regex
 
--- [要修正]
+import Utils.Base as Base
+
+-- [要修正]: 例外処理之追加
 assemble :: String -> String
 assemble op =
 	let	wordlist = splitRegex (mkRegex " +") op
 		opcode = head wordlist
 		operand = tail wordlist
-		optype = length operand
 	in case opcode of
-		"mov"	-> case 
-			assemble "mov a, im" = "0011im"
-			assemble "mov b, im" = "0111im"
-			assemble "mov a, b" = "00010000"
-			assemble "mov b, a" = "01000000"
-		"add"	->
-			assemble "add a, im" = "0000im"
-			assemble "add b, im" = "0101im"
-		"in"		->
-			assemble "in a" = "00100000"
-			assemble "in b" = "01100000"
-		"out"	->
-			assemble "out im" = "1011im"
-			assemble "out b" = "10010000"
-		"jmp"	->
-			assemble "jmp im" = "1111im"
-		"jnc"	->
-			assemble "jnc im" = "1110im"
+		"mov"	->	case operand !! 0 of
+						"a,"	->	case operand !! 1 of
+										"b"	-> "00010000"
+									 	im	-> "0011" ++ dec2bin im
+						"b,"	->	case operand !! 1 of
+										"a"	-> "01000000"
+										im	-> "0111" ++ dec2bin im
+		"add"	->	case operand !! 0 of
+						"a,"	-> "0000" ++ dec2bin (operand !! 1)
+						"b,"	-> "0101" ++ dec2bin (operand !! 1)
+		"in"		->	case operand !! 0 of
+						"a"	-> "00100000"
+						"b"	-> "01100000"
+		"out"	->	case operand !! 0 of
+						"b"	-> "10010000"
+						im	-> "1011" ++ dec2bin im
+		"jmp"	-> "1111" ++ dec2bin (operand !! 0)
+		"jnc"	-> "1110" ++ dec2bin (operand !! 0)
+		_		-> error $ "錯誤 (存在為無い命令): " ++ op
