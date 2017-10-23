@@ -5,7 +5,7 @@ import Data.Char
 
 import qualified Machine.TD4 as TD4
 
-data Machine = TD4 | Type1
+data Machine = TD4 | Type1 | Type2
 
 main = do
 	-- [要修正] 選項解析処理及夫錯誤時之処理
@@ -19,7 +19,8 @@ main = do
 
 assemble :: Machine -> [String] -> [String]
 assemble TD4 ops = map TD4.assemble $ map (map toLower) ops
-assemble Type1 ops = ["Sorry, this machine is unsupportedyet."]
+assemble Type1 ops = error "非対応な計算機: type1"
+assemble Type2 ops = error "非対応な計算機: type2"
 
 help :: String
 help = "---------- Assembler 第0.0.1版 ----------\n" ++
@@ -32,7 +33,7 @@ help = "---------- Assembler 第0.0.1版 ----------\n" ++
 	"\n" ++
 	"        <選項一覧>\n" ++
 	"            t (計算機名): 対象を指定する\n" ++
-	"                計算機名: td4, ...\n" ++
+	"                計算機名: td4, type1, ...\n" ++
 	"            r: 逆アセンブルを行う\n" ++
 	"\n" ++
 	"        <例>\n" ++
