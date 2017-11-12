@@ -10,5 +10,5 @@ Assembler
     $ ghc Main.hs -o asm
 
 ## 実行例
-    $ asm -m=TD4 -d=asm Flash-LED.asm
-    $ asm --machine=Type1 --direction=DisASM --verbose=ON Fibonacci.bin --output Fib.asm 
+    $ asm -c=TD4 -d=asm Flash-LED.asm
+    $ asm --computer=Type1 --mode=DisASM --verbose=ON Fibonacci.bin --output Fib.asm 
