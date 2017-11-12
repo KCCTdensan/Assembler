@@ -37,12 +37,12 @@ cmdOpt = CmdOpt
 				&=	groupname "換符ニ関為ル選項",
 		file 		=	def
 				&=	argPos 0
-				&=	typ "書名",
+				&=	typ "算譜名",
 -- [要修正]: 出力先選択機能之追加
 {-		output	=	def
 				&=	opt ""
-				&=	typ " 署名.変換済拡張子 | _"
-				&=	help "出力先之指定 (指定無キ時、入力為レシ書名之拡張子ヲ変更為タ物ト成ル。)"
+				&=	typ " 算譜名.変換先之拡張子 | _"
+				&=	help "出力先之指定 (指定無キ時、入力為レシ算譜名之拡張子ヲ変更為タ物ト成ル。)"
 				&=	groupname "換符ニ関為ル選項",
 -}		verbose	=	OFF
 				&=	opt "OFF"
