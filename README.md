@@ -11,4 +11,5 @@ Assembler
 
 ## 実行例
     $ asm -c=TD4 -m=asm Flash-LED.asm
-    $ asm --computer=Type1 --mode=DisASM --verbose=ON Fibonacci.bin --output Fib.asm 
+    $ asm -c TD4 -m asm -v=on sum.as -o=SUM.BIN"
+    $ asm --computer=Type1 --mode=DisASM --verbose=ON Fibonacci.bin --output=Fib.asm 
