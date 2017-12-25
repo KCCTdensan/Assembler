@@ -2,6 +2,7 @@ module Machine.TD4 (
 	assemble
 ) where
 
+import Data.Char
 import Text.Regex
 
 import qualified Utils.Numeric as Util
@@ -12,10 +13,13 @@ width = 4
 toBin :: String -> String
 toBin = Util.toBin width
 
+assemble :: [String] -> [String]
+assemble insts = map toCode $ map (map toLower) insts
+ 
 -- [要修正]: 例外処理之追加
-assemble :: String -> String
-assemble op =
-	let	wordlist = splitRegex (mkRegex " +") op
+toCode :: String -> String
+toCode inst =
+	let	wordlist = splitRegex (mkRegex " +") inst
 		opcode = head wordlist
 		operand = tail wordlist
 	in case opcode of
@@ -25,7 +29,7 @@ assemble op =
 		"out"	->	out operand
 		"jmp"	->	jmp operand
 		"jnc"	->	jnc operand
-		_		-> error $ "錯誤 (存在為無い命令): " ++ op
+		_		-> error $ "錯誤 (存在為無い命令): " ++ inst
 
 mov :: [String] -> String
 mov operand =

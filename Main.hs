@@ -4,7 +4,6 @@ import System.Directory
 import System.Exit
 import System.Environment
 import System.IO
-import Data.Char
 import Data.IORef
 import Control.Monad
 import Text.Regex
@@ -43,7 +42,7 @@ cmdOpt = CmdOpt
 		output	=	def
 				&=	opt ""
 				&=	typ " (譜之本体名).{意符: asm, 械符: bin} | (指定値)"
-				&=	help "出力先之指定 (指定無キ時、算譜之拡張子名ヲ変更為タ物ト成ル。)"
+				&=	help "書出先之指定 (指定無キ時、算譜之拡張子名ヲ変更為タ物ト成ル。)"
 				&=	groupname "換符ニ関為ル選項",
 		verbose	=	OFF
 				&=	opt "OFF"
@@ -108,46 +107,47 @@ main = do
 	-----------------------------------------------------------------------------
 
 	-- 換符処理 -----------------------------------------------------------------
-	{- 出力先を設定 -}
+	{- 書出先を設定 -}
 	let outputFile =
 		if output args == def
 			then head (splitRegex (mkRegex "[.]+") $ file args) ++ "." ++ if mode args == ASM then "bin" else "asm"
 			else output args
 	
-	{- 詳細出力 -}
+	{- 詳細書出 -}
 	when (verboseIsOn args) $ do
-		putStrLn $ "出力先: " ++ outputFile
+		putStrLn $ "書出先: " ++ outputFile
 
-	-- [以下要修正]: verbose=ONの反映, 錯誤時処理の追加, disassembleの実装, ファイル処理の適正化, 文字列の読込→例: 文字毎に処理
-	ops <- lines <$> readFile (file args)
+	-- [以下要修正]: verbose=ONの反映, 錯誤時処理の追加, disassembleの実装, 算帖処理の適正化, 文字列の読込→例: 文字毎に処理
+	insts <- lines <$> readFile (file args)
 
-	{- 詳細出力 -}
+	{- 詳細書出 -}
 	when (verboseIsOn args) $ do
 		putStrLn "元符列:"
 		putStrLn "["
-		mapM_ putStrLn $ map ("    " ++) ops
+		mapM_ putStrLn $ map ("    " ++) insts
 		putStrLn "]"
 
 	{- 換符 -}
-	let newOps = (if mode args == ASM then assemble else disassemble) (computer args) ops
+	let codes = (if mode args == ASM then assemble else disassemble) (computer args) insts
 
-	{- 詳細出力 -}
+	{- 詳細書出 -}
 	when (verboseIsOn args) $ do
 		putStrLn "換符列:"
 		putStrLn "["
-		mapM_ putStrLn $ map ("    " ++) newOps
+		mapM_ putStrLn $ map ("    " ++) codes
 		putStrLn "]"
 
-	writeFile outputFile $ unlines newOps
+	{- 字帖書出 -}
+	writeFile outputFile $ unlines codes
 	-----------------------------------------------------------------------------
 
 assemble :: Computer -> [String] -> [String]
-assemble TD4 ops = map TD4.assemble $ map (map toLower) ops
-assemble Type1 ops =  error "非対応な計算機: type1"
-assemble Type2 ops = error "非対応な計算機: type2"
+assemble TD4 insts = TD4.assemble insts
+assemble Type1 insts =  error "非対応な計算機: type1"
+assemble Type2 insts = error "非対応な計算機: type2"
 
 disassemble :: Computer -> [String] -> [String]
-disassemble cmp ops = undefined
---disassemble TD4 ops = map TD4.disassemble $ map (map toLower) ops
---disassemble Type1 ops =  error "非対応な計算機: type1"
---disassemble Type2 ops = error "非対応な計算機: type2"
+disassemble cmp insts = undefined
+--disassemble TD4 insts = map TD4.disassemble $ map (map toLower) ops
+--disassemble Type1 insts =  error "非対応な計算機: type1"
+--disassemble Type2 insts = error "非対応な計算機: type2"
