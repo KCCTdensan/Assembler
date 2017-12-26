@@ -6,6 +6,8 @@ import System.Environment
 import System.IO
 import Data.IORef
 import Control.Monad
+import Data.Either
+import Data.Char
 import Text.Regex
 
 import System.Console.CmdArgs
@@ -13,8 +15,9 @@ import qualified Machine.TD4 as TD4
 -- import qualified Machine.Type1 as Type1
 -- import qualified Machine.Type1 as Type2
 
+-- [要調査及修正]: 言語拡張で、異なる代数的算料型に同名の値構成子を持たせられるのでは?
 data Computer = NoSelC | TD4 | Type1 | Type2 deriving (Data, Eq, Show)
-data ProcMode = NoSelD | ASM | DisASM deriving (Data, Eq, Show)
+data ProcMode = NoSelM | ASM | DisASM deriving (Data, Eq, Show)
 data Verbose = OFF | ON deriving (Data, Eq, Show)
 
 data CmdOpt = CmdOpt {
@@ -32,7 +35,7 @@ cmdOpt = CmdOpt
 				&=	typ "{TD4 | Type1 | Type2}"
 				&=	help "対象之計算機名"
 				&=	groupname "換符ニ関為ル選項",
-		mode	=	NoSelD
+		mode	=	NoSelM
 				&=	typ "{ASM | DisASM}"
 				&=	help "換符之方向 (具意符→機械符: ASM, 具意符←機械符: DisASM)"
 				&=	groupname "換符ニ関為ル選項",
@@ -77,11 +80,12 @@ computerIsSelected :: CmdOpt -> Bool
 computerIsSelected args = computer args /= NoSelC
 
 modeIsSelected :: CmdOpt -> Bool
-modeIsSelected args = mode args /= NoSelD
+modeIsSelected args = mode args /= NoSelM
 
 verboseIsOn :: CmdOpt -> Bool
 verboseIsOn args = verbose args == ON
 
+main :: IO ()
 main = do
 	args <- cmdArgs cmdOpt
 
@@ -118,35 +122,33 @@ main = do
 		putStrLn $ "書出先: " ++ outputFile
 
 	-- [以下要修正]: verbose=ONの反映, 錯誤時処理の追加, disassembleの実装, 算帖処理の適正化, 文字列の読込→例: 文字毎に処理
-	insts <- lines <$> readFile (file args)
-
-	{- 詳細書出 -}
-	when (verboseIsOn args) $ do
-		putStrLn "元符列:"
-		putStrLn "["
-		mapM_ putStrLn $ map ("    " ++) insts
-		putStrLn "]"
+	insts <- map (map toLower) <$> lines <$> readFile (file args)
 
 	{- 換符 -}
-	let codes = (if mode args == ASM then assemble else disassemble) (computer args) insts
+	let	result = convert (computer args) (mode args) insts
+		converted = all isRight result
+		codes = rights result
+		errors = lefts result
 
-	{- 詳細書出 -}
-	when (verboseIsOn args) $ do
-		putStrLn "換符列:"
-		putStrLn "["
-		mapM_ putStrLn $ map ("    " ++) codes
-		putStrLn "]"
+	{- 錯誤書出 -}
+	when (not converted) $ do
+		mapM_ putStrLn errors
 
-	{- 字帖書出 -}
-	writeFile outputFile $ unlines codes
+	{- 文字式帖方書出 -}
+	-- [要修正]: 文字式算帖已成ら不、二進號式算帖にも對應爲可し。亦、夫は選項で指定爲可
+	when converted $ do
+		writeFile outputFile $ unlines codes
 	-----------------------------------------------------------------------------
 
-assemble :: Computer -> [String] -> [String]
-assemble TD4 insts = TD4.assemble insts
-assemble Type1 insts =  error "非対応な計算機: type1"
-assemble Type2 insts = error "非対応な計算機: type2"
+convert ::  Computer -> ProcMode -> [String] -> [Either String String]
+convert cmp ASM insts = assemble cmp insts
+convert cmp DisASM insts = disassemble cmp insts
 
-disassemble :: Computer -> [String] -> [String]
+assemble :: Computer -> [String] -> [Either String String]
+assemble TD4 insts = TD4.assemble insts
+assemble cmp insts =  error $ "非対応な計算機: " ++ show cmp
+
+disassemble :: Computer -> [String] -> [Either String String]
 disassemble cmp insts = undefined
 --disassemble TD4 insts = map TD4.disassemble $ map (map toLower) ops
 --disassemble Type1 insts =  error "非対応な計算機: type1"
