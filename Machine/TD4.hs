@@ -1,8 +1,8 @@
 module Machine.TD4 (
 	assemble
+	-- disassemble
 ) where
 
-import Data.Char
 import Text.Regex
 
 import qualified Utils.Numeric as Util
@@ -10,57 +10,73 @@ import qualified Utils.Numeric as Util
 width :: Int
 width = 4
 
-toBin :: String -> String
+toBin :: String -> Either String String
 toBin = Util.toBin width
 
-assemble :: [String] -> [String]
-assemble insts = map toCode $ map (map toLower) insts
- 
--- [要修正]: 例外処理之追加
-toCode :: String -> String
+-- [要修正]: 錯誤の在る行番號の表示に對應す可し
+assemble :: [String] -> [Either String String]
+assemble insts = map toCode insts
+
+toCode :: String -> Either String String
 toCode inst =
 	let	wordlist = splitRegex (mkRegex " +") inst
 		opcode = head wordlist
-		operand = tail wordlist
+		operand = tail wordlist -- [要修正]: 第一項の末尾に,が附されてゐる場合を排除。氣持惡き故。
 	in case opcode of
-		"mov"	->	mov operand
-		"add"	->	add operand
-		"in"		->	in_op operand
-		"out"	->	out operand
-		"jmp"	->	jmp operand
-		"jnc"	->	jnc operand
-		_		-> error $ "錯誤 (存在為無い命令): " ++ inst
+		"mov"	-> mov operand
+		"add"	-> add operand
+		"in"		-> Right $ in_op operand
+		"out"	-> out operand
+		"jmp"	-> jmp operand
+		"jnc"	-> jnc operand
+		_		-> Left $ "錯誤 (存在爲無い命令): " ++ inst
 
-mov :: [String] -> String
+mov :: [String] -> Either String String
 mov operand =
 	case operand !! 0 of
-		"a,"	->	case operand !! 1 of
-					"b"	-> "00010000"
-				 	im	-> "0011" ++ toBin im
-		"b,"	->	case operand !! 1 of
-					"a"	-> "01000000"
-					im	-> "0111" ++ toBin im
+		"a," ->
+			case operand !! 1 of
+				"b"	-> Right "00010000"
+				im	-> do
+					binIm <- toBin im
+					Right $ "0011" ++ binIm
+		"b," ->
+			case operand !! 1 of
+				"a"	-> Right "01000000"
+				im	-> do
+					binIm <- toBin im
+					Right $ "0111" ++ binIm
 
-add :: [String] -> String
+add :: [String] -> Either String String
 add operand =
 	case operand !! 0 of
-		"a,"	-> "0000" ++ toBin (operand !! 1)
-		"b,"	-> "0101" ++ toBin (operand !! 1)
+		"a," -> do
+			binIm <- toBin $ operand !! 1
+			Right $ "0000" ++ binIm
+		"b," -> do
+			binIm <- toBin $ operand !! 1
+			Right $ "0101" ++ binIm
 
 in_op :: [String] -> String
 in_op operand =
-	case operand !! 0 of	
-		"a"	-> "00100000"
-		"b"	-> "01100000"
+	case operand !! 0 of
+		"a" -> "00100000"
+		"b" -> "01100000"
 
-out :: [String] -> String
+out :: [String] -> Either String String
 out operand =
 	case operand !! 0 of
-		"b"	-> "10010000"
-		im	-> "1011" ++ toBin im
+		"b"	-> Right "10010000"
+		im	-> do
+			binIm <- toBin im
+			Right $ "1011" ++ binIm
 
-jmp :: [String] -> String
-jmp operand = "1111" ++ toBin (operand !! 0)
+jmp :: [String] -> Either String String
+jmp operand = do
+	binIm <- toBin $ operand !! 0
+	Right $ "1111" ++ binIm
 
-jnc :: [String] -> String
-jnc operand = "1110" ++ toBin (operand !! 0)
+jnc :: [String] -> Either String String
+jnc operand = do
+	binIm <-toBin $ operand !! 0
+	Right $ "1110" ++ binIm
