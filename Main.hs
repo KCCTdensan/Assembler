@@ -15,7 +15,7 @@ import qualified Machine.TD4 as TD4
 -- import qualified Machine.Type1 as Type1
 -- import qualified Machine.Type1 as Type2
 
--- [要調査及修正]: 言語拡張で、異なる代数的算料型に同名の値構成子を持たせられるのでは?
+-- [要調査及修正]: 言語擴張で、異なる代數的算料型に同名の値構成子を持たせられるのでは?
 data Computer = NoSelC | TD4 | Type1 | Type2 deriving (Data, Eq, Show)
 data ProcMode = NoSelM | ASM | DisASM deriving (Data, Eq, Show)
 data Verbose = OFF | ON deriving (Data, Eq, Show)
@@ -33,36 +33,36 @@ cmdOpt = CmdOpt
 	{
 		computer =	NoSelC
 				&=	typ "{TD4 | Type1 | Type2}"
-				&=	help "対象之計算機名"
-				&=	groupname "換符ニ関為ル選項",
+				&=	help "対象ノ計算機名"
+				&=	groupname "換符ニ関關爲ル選項",
 		mode	=	NoSelM
 				&=	typ "{ASM | DisASM}"
-				&=	help "換符之方向 (具意符→機械符: ASM, 具意符←機械符: DisASM)"
-				&=	groupname "換符ニ関為ル選項",
+				&=	help "換符ノ方向 (具意符→機械符: ASM, 具意符←機械符: DisASM)"
+				&=	groupname "換符ニ關爲ル選項",
 		file 		=	def
 				&=	argPos 0
 				&=	typ "算譜名",
 		output	=	def
 				&=	opt ""
 				&=	typ " (譜之本体名).{意符: asm, 械符: bin} | (指定値)"
-				&=	help "書出先之指定 (指定無キ時、算譜之拡張子名ヲ変更為タ物ト成ル。)"
-				&=	groupname "換符ニ関為ル選項",
+				&=	help "書出先ノ指定 (指定無キ時、算譜ノ拡張子名ヲ変更爲タ物ト成ル。)"
+				&=	groupname "換符ニ關爲ル選項",
 		verbose	=	OFF
 				&=	opt "OFF"
 				&=	typ " OFF | ON"
-				&=	help "換符処理之表示ヲ行フ"
-				&=	groupname "本算譜ニ対為ル選項"
+				&=	help "換符處理ノ表示ヲ行フ"
+				&=	groupname "本算譜ニ對爲ル選項"
 	}
 	&= helpArg [
-				help "此文章ヲ表示為ル",
-				groupname "本算譜ニ対為ル選項"
+				help "此文章ヲ表示爲ル",
+				groupname "本算譜ニ對爲ル選項"
 			   ]
 	&= versionArg [
-					help "本算譜之版ヲ表示為ル",
-					groupname "本算譜ニ対為ル選項"
+					help "本算譜ノ版ヲ表示爲ル",
+					groupname "本算譜ニ對爲ル選項"
 			        ]
 	&= summary "Assembler 第〇.〇.一版"
-	&= help "「神戸市立工業高等専門学校 電子計算機部 計算機製作プロジェクト」に於て製作為れし計算機群之換符系に候。"
+	&= help "「神戸市立工業高等専門学校 電子計算機部 計算機製作プロジェクト」に於て製作爲れし計算機群之換符系に候。"
 	&= program "asm"
 	&= details [
 				"",
@@ -94,16 +94,16 @@ main = do
 
 	unless (computerIsSelected args) $ do
 		flag `writeIORef` True
-		putStrLn "錯誤: 対象之計算機が指定為れて居ません。"
+		putStrLn "錯誤: 對象の計算機が指定爲れてゐません。"
 	unless (modeIsSelected args) $ do
 		flag `writeIORef` True
-		putStrLn "錯誤: 換符之方向が指定為れて居ません。"
+		putStrLn "錯誤: 換符の方向が指定爲れてゐません。"
 	exist <- doesFileExist $ file args
 	unless exist $ do
 		flag `writeIORef` True
-		putStrLn $ "錯誤: " ++ file args ++ " と云ふ算譜は存在為ません。"
+		putStrLn $ "錯誤: " ++ file args ++ " と云ふ算譜は存在爲ません。"
 
-	-- [要修正]: outputが若し指定為れた場合を追加
+	-- [要修正]: outputが若し指定爲れた場合を追加
 
 	err <- readIORef flag
 	when err $ do
@@ -121,7 +121,7 @@ main = do
 	when (verboseIsOn args) $ do
 		putStrLn $ "書出先: " ++ outputFile
 
-	-- [以下要修正]: verbose=ONの反映, 錯誤時処理の追加, disassembleの実装, 算帖処理の適正化, 文字列の読込→例: 文字毎に処理
+	-- [以下要修正]: verbose=ONの反映, 錯誤時處理の追加, disassembleの實裝, 算帖處理の適正化, 文字列の読込→例: 文字每に處理
 	insts <- map (map toLower) <$> lines <$> readFile (file args)
 
 	{- 換符 -}
@@ -135,7 +135,7 @@ main = do
 		mapM_ putStrLn errors
 
 	{- 文字式帖方書出 -}
-	-- [要修正]: 文字式算帖已成ら不、二進號式算帖にも對應爲可し。亦、夫は選項で指定爲可
+	-- [要修正]: 文字式算帖已成ら不、二進號式算帖にも對應爲べし。亦、夫は選項で指定爲べし
 	when converted $ do
 		writeFile outputFile $ unlines codes
 	-----------------------------------------------------------------------------
@@ -146,10 +146,10 @@ convert cmp DisASM insts = disassemble cmp insts
 
 assemble :: Computer -> [String] -> [Either String String]
 assemble TD4 insts = TD4.assemble insts
-assemble cmp insts =  error $ "非対応な計算機: " ++ show cmp
+assemble cmp insts =  error $ "非對應な計算機: " ++ show cmp
 
 disassemble :: Computer -> [String] -> [Either String String]
 disassemble cmp insts = undefined
 --disassemble TD4 insts = map TD4.disassemble $ map (map toLower) ops
---disassemble Type1 insts =  error "非対応な計算機: type1"
---disassemble Type2 insts = error "非対応な計算機: type2"
+--disassemble Type1 insts =  error "非對應な計算機: type1"
+--disassemble Type2 insts = error "非對應な計算機: type2"
