@@ -13,7 +13,7 @@ width = 4
 toBin :: String -> Either String String
 toBin = Util.toBin width
 
--- [要修正]: 錯誤の在る行番號の表示に對應す可し
+-- [要修正]: 錯誤の在る行番號の表示に對應爲べし
 assemble :: [String] -> [Either String String]
 assemble insts = map toCode insts
 
@@ -21,7 +21,7 @@ toCode :: String -> Either String String
 toCode inst =
 	let	wordlist = splitRegex (mkRegex " +") inst
 		opcode = head wordlist
-		operand = tail wordlist -- [要修正]: 第一項の末尾に,が附されてゐる場合を排除。氣持惡き故。
+		operand = tail wordlist -- [要修正]: 第一項の末尾に,が附爲れてゐる場合を排除。心持惡き故。
 	in case opcode of
 		"mov"	-> mov operand
 		"add"	-> add operand
